@@ -1,0 +1,76 @@
+<html>
+  <head>
+    <style>
+      body {
+        margin: 0;
+      }
+
+      .container {
+        display: flex;
+        width: 100vw;
+        height: 100vh;
+        align-items: center;
+        justify-content: center;
+        transform-origin: 0 0;
+      }
+
+      .img {
+        width: 100vw;
+        height: 100vh;
+        object-fit: cover;
+      }
+    </style>
+  </head>
+  <body>
+    <img id="gif-img" src="./assets/nyancat-ikea.gif" />
+  </body>
+  <script type="text/javascript">
+    const images = {
+      cool: "./assets/nyancat-ikea.gif",
+      warm: "./assets/nyancat-retro.gif",
+      hot: "./assets/nyancat-taco.gif",
+      critical: "./assets/nyancat-lag.gif",
+    };
+    const params = new URL(window.location.href).searchParams;
+    const viewstate = params.get("viewstate") || 640;
+
+    const gifEl = window.document.getElementById("gif-img");
+    gifEl.setAttribute("width", viewstate);
+    gifEl.setAttribute("height", viewstate);
+
+    window.nzxt = {
+      v1: {
+        onMonitoringDataUpdate: (data) => {
+          const { cpus, gpus, ram } = data;
+          const tempVal = getTempValue([cpus, gpus]);
+
+          gifEl.setAttribute("src", images[tempVal]);
+        },
+      },
+    };
+
+    function getTempValue(temperatures) {
+      let highestRatio = 0;
+      temperatures.forEach(
+        ({ temperature, minTemperature, maxTemperature }) => {
+          const ratio =
+            (temperature - minTemperature) / (maxTemperature - minTemperature);
+
+          if (ratio > highestRatio) {
+            highestRatio = ratio;
+          }
+        }
+      );
+
+      if (highestRatio < 0.5) {
+        return "cool";
+      } else if (highestRatio < 0.65) {
+        return "warm";
+      } else if (highestRatio < 0.75) {
+        return "hot";
+      } else {
+        return "critical";
+      }
+    }
+  </script>
+</html>
